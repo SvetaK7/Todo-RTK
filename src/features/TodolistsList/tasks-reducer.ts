@@ -1,17 +1,9 @@
-import {
-  TaskPriorities,
-  TaskStatuses,
-  TaskType,
-  todolistsAPI,
-  TodolistType,
-  UpdateTaskModelType
-} from 'api/todolists-api'
-import {Dispatch} from 'redux'
-import {AppRootStateType, AppThunk} from 'app/store'
+import {TaskPriorities, TaskStatuses, TaskType, todolistsAPI, UpdateTaskModelType} from 'api/todolists-api'
+import {AppThunk} from 'app/store'
 import {appActions} from 'app/app-reducer'
 import {handleServerAppError, handleServerNetworkError} from 'utils/error-utils'
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {TodolistDomainType, todolistsActions} from "features/TodolistsList/todolists-reducer";
+import {todolistsActions} from "features/TodolistsList/todolists-reducer";
 
 const initialState: TasksStateType = {}
 
@@ -29,10 +21,14 @@ const slice = createSlice({
       tasks.unshift(action.payload.task)
     },
     updateTask: (state, action: PayloadAction<{ taskId: string, model: UpdateDomainTaskModelType, todolistId: string }>) => {
-
+      const tasks = state[action.payload.todolistId];
+      const index = tasks.findIndex(t => t.id === action.payload.taskId);
+      if (index !== -1){
+        tasks[index] = {...tasks[index], ...action.payload.model}
+      }
     },
     setTasks: (state, action: PayloadAction<{ tasks: Array<TaskType>, todolistId: string }>) => {
-
+      state[action.payload.todolistId] = action.payload.tasks
     }
   },
   extraReducers: builder => {
@@ -51,25 +47,8 @@ const slice = createSlice({
   }
 })
 
-export const tasksReducer = (state: TasksStateType = initialState, action: ActionsType): TasksStateType => {
-  switch (action.type) {
-
-    case 'UPDATE-TASK':
-      return {
-        ...state,
-        [action.todolistId]: state[action.todolistId]
-          .map(t => t.id === action.taskId ? {...t, ...action.model} : t)
-      }
-
-    case 'SET-TASKS':
-      return {...state, [action.todolistId]: action.tasks}
-    default:
-      return state
-  }
-}
-
-// actions
-
+export const tasksReducer = slice.reducer;
+export const tasksActions = slice.actions;
 
 // thunks
 export const fetchTasksTC = (todolistId: string): AppThunk => (dispatch) => {
@@ -77,14 +56,14 @@ export const fetchTasksTC = (todolistId: string): AppThunk => (dispatch) => {
   todolistsAPI.getTasks(todolistId)
     .then((res) => {
       const tasks = res.data.items
-      dispatch(setTasksAC(tasks, todolistId))
+      dispatch(tasksActions.setTasks({tasks, todolistId}))
       dispatch(appActions.setAppStatus({status: 'succeeded'}))
     })
 }
 export const removeTaskTC = (taskId: string, todolistId: string): AppThunk => (dispatch) => {
   todolistsAPI.deleteTask(todolistId, taskId)
     .then(res => {
-      const action = removeTaskAC(taskId, todolistId)
+      const action = tasksActions.removeTask({taskId, todolistId})
       dispatch(action)
     })
 }
@@ -94,8 +73,7 @@ export const addTaskTC = (title: string, todolistId: string): AppThunk => (dispa
     .then(res => {
       if (res.data.resultCode === 0) {
         const task = res.data.data.item
-        const action = addTaskAC(task)
-        dispatch(action)
+        dispatch(tasksActions.addTask({task}))
         dispatch(appActions.setAppStatus({status: 'succeeded'}))
       } else {
         handleServerAppError(res.data, dispatch);
@@ -128,8 +106,7 @@ export const updateTaskTC = (taskId: string, domainModel: UpdateDomainTaskModelT
     todolistsAPI.updateTask(todolistId, taskId, apiModel)
       .then(res => {
         if (res.data.resultCode === 0) {
-          const action = updateTaskAC(taskId, domainModel, todolistId)
-          dispatch(action)
+          dispatch(tasksActions.updateTask({taskId,model: domainModel, todolistId}))
         } else {
           handleServerAppError(res.data, dispatch);
         }
@@ -151,8 +128,4 @@ export type UpdateDomainTaskModelType = {
 export type TasksStateType = {
   [key: string]: Array<TaskType>
 }
-type ActionsType =
-  | ReturnType<typeof removeTaskAC>
-  | ReturnType<typeof addTaskAC>
-  | ReturnType<typeof updateTaskAC>
-  | ReturnType<typeof setTasksAC>
+
