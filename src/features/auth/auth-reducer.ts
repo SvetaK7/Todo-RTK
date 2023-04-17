@@ -6,6 +6,7 @@ import {handleServerNetworkError} from "common/utils/handleServerNetworkError";
 import {authAPI, LoginParamsType} from "features/auth/auth-api";
 import {clearTasksAndTodolists} from "common/actions/common-actions";
 import {createAppAsyncThunk} from "common/utils";
+import {ResultCode} from "common/enums";
 
 
 const login = createAppAsyncThunk<{ isLoggedIn: boolean }, LoginParamsType>
@@ -15,11 +16,12 @@ const login = createAppAsyncThunk<{ isLoggedIn: boolean }, LoginParamsType>
   try {
     dispatch(appActions.setAppStatus({status: 'loading'}))
     const res = await authAPI.login(arg)
-    if (res.data.resultCode === 0) {
+    if (res.data.resultCode === ResultCode.Success) {
       dispatch(appActions.setAppStatus({status: 'succeeded'}))
       return {isLoggedIn: true}
     } else {
-      handleServerAppError(res.data, dispatch, false)
+      const isShowError = !res.data.fieldsErrors.length
+      handleServerAppError(res.data, dispatch, isShowError)
       return rejectWithValue(res.data)
     }
   } catch (e) {
