@@ -11,6 +11,7 @@ import {
 } from "features/TodolistsList/todolists-api";
 import {ResultCode, TaskPriorities, TaskStatuses} from "common/enums";
 import {clearTasksAndTodolists} from "common/actions/common-actions";
+import {thunkTryCatch} from "common/utils/thunk-try-catch";
 
 const fetchTasks = createAppAsyncThunk<{ tasks: TaskType[], todolistId: string }, string>
 ('tasks/fetchTasks', async (todolistId, thunkAPI) => {
@@ -30,21 +31,16 @@ const fetchTasks = createAppAsyncThunk<{ tasks: TaskType[], todolistId: string }
 const addTask = createAppAsyncThunk<{ task: TaskType }, AddTaskArgType>
 ('tasks/addTask', async (arg, thunkAPI) => {
   const {dispatch, rejectWithValue} = thunkAPI;
-  dispatch(appActions.setAppStatus({status: 'loading'}))
-  const res = await todolistsAPI.createTask(arg)
-  try {
+  return thunkTryCatch(thunkAPI, async () => {
+    const res = await todolistsAPI.createTask(arg)
     if (res.data.resultCode === ResultCode.Success) {
       const task = res.data.data.item
-      dispatch(appActions.setAppStatus({status: 'succeeded'}))
       return {task}
     } else {
       handleServerAppError(res.data, dispatch);
       return rejectWithValue(null)
     }
-  } catch (e) {
-    handleServerNetworkError(e, dispatch);
-    return rejectWithValue(null)
-  }
+  })
 })
 
 const updateTask = createAppAsyncThunk<UpdateTaskArgType, UpdateTaskArgType>
@@ -84,14 +80,14 @@ const updateTask = createAppAsyncThunk<UpdateTaskArgType, UpdateTaskArgType>
 })
 
 export const removeTask = createAppAsyncThunk<removeTaskArgType, removeTaskArgType>
-('tasks/removeTask', async  (arg, thunkAPI) => {
+('tasks/removeTask', async (arg, thunkAPI) => {
   const {dispatch, rejectWithValue} = thunkAPI;
   try {
     dispatch(appActions.setAppStatus({status: 'loading'}))
     await todolistsAPI.deleteTask(arg.todolistId, arg.taskId);
     dispatch(appActions.setAppStatus({status: 'succeeded'}))
     return arg
-  } catch (e){
+  } catch (e) {
     handleServerNetworkError(e, dispatch);
     return rejectWithValue(null)
   }
