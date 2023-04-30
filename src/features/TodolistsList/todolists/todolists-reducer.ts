@@ -1,7 +1,7 @@
 import {appActions, RequestStatusType} from 'app/app-reducer'
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {handleServerNetworkError} from "common/utils/handleServerNetworkError";
-import {todolistsAPI, TodolistType} from "features/TodolistsList/todolists-api";
+import {todolistsAPI, TodolistType} from "features/TodolistsList/todolists/todolists-api";
 import {createAppAsyncThunk, handleServerAppError} from "common/utils";
 import {clearTasksAndTodolists} from "common/actions/common-actions";
 import {thunkTryCatch} from "common/utils/thunk-try-catch";

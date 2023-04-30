@@ -3,15 +3,14 @@ import { useSelector } from 'react-redux'
 import {
     FilterValuesType,
     todolistsActions, todolistsThunk
-} from './todolists-reducer'
-import {tasksThunks} from './tasks-reducer'
+} from 'features/TodolistsList/todolists/todolists-reducer'
+import {tasksThunks} from 'features/TodolistsList/tasks/tasks-reducer'
 import { Grid, Paper } from '@mui/material'
-import { Todolist } from './Todolist/Todolist'
+import { Todolist } from 'features/TodolistsList/todolists/Todolist/Todolist'
 import { Navigate } from 'react-router-dom'
 import {selectIsLoggedIn} from "features/auth/auth-selectors";
-import {selectTask} from "features/TodolistsList/tasks-selectors";
-import {selectTodolists} from "features/TodolistsList/todolists-selectors";
-import {useAppDispatch} from "common/hooks";
+import {selectTask} from "features/TodolistsList/tasks/tasks-selectors";
+import {selectTodolists} from "features/TodolistsList/todolists/todolists-selectors";
 import {AddItemForm} from "common/components";
 import {TaskStatuses} from "common/enums";
 import {useActions} from "common/hooks/useActions";
@@ -26,8 +25,6 @@ export const TodolistsList: React.FC<PropsType> = ({demo = false}) => {
     const tasks = useSelector(selectTask)
     const isLoggedIn = useSelector(selectIsLoggedIn)
 
-    const dispatch = useAppDispatch()
-
     const {addTask: attTaskTC, removeTask: removeTaskTC, updateTask, fetchTasks} = useActions(tasksThunks)
     const {changeTodolistFilter} = useActions(todolistsActions)
     const {addTodolist: addTodolistTC,
@@ -39,11 +36,7 @@ export const TodolistsList: React.FC<PropsType> = ({demo = false}) => {
         if (demo || !isLoggedIn) {
             return;
         }
-			fetchTodolists()
-    }, [])
-
-    const removeTask = useCallback(function (taskId: string, todolistId: string) {
-        removeTaskTC({taskId, todolistId})
+			fetchTodolists({})
     }, [])
 
     const addTask = useCallback(function (title: string, todolistId: string) {
@@ -72,7 +65,7 @@ export const TodolistsList: React.FC<PropsType> = ({demo = false}) => {
 
     const addTodolist = useCallback((title: string) => {
         addTodolistTC(title)
-    }, [dispatch])
+    }, [])
 
     if (!isLoggedIn) {
         return <Navigate to={"/login"} />
@@ -92,7 +85,6 @@ export const TodolistsList: React.FC<PropsType> = ({demo = false}) => {
                             <Todolist
                                 todolist={tl}
                                 tasks={allTodolistTasks}
-                                removeTask={removeTask}
                                 changeFilter={changeFilter}
                                 addTask={addTask}
                                 changeTaskStatus={changeStatus}
