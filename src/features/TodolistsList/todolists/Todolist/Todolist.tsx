@@ -2,13 +2,14 @@ import React, {FC, memo, useCallback, useEffect} from 'react'
 import {AddItemForm} from 'common/components/AddItemForm/AddItemForm'
 import {EditableSpan} from 'common/components/EditableSpan/EditableSpan'
 import {Task} from 'features/TodolistsList/todolists/Todolist/Task/Task'
-import {TodolistDomainType, todolistsActions, todolistsThunk} from 'features/TodolistsList/todolists/todolists-reducer'
+import {TodolistDomainType, todolistsThunk} from 'features/TodolistsList/todolists/todolists-reducer'
 import {tasksThunks} from 'features/TodolistsList/tasks/tasks-reducer'
-import {Button, IconButton} from '@mui/material'
+import {IconButton} from '@mui/material'
 import {Delete} from '@mui/icons-material'
 import {TaskStatuses} from "common/enums";
 import {TaskType} from "features/TodolistsList/tasks/tasks-api";
 import {useActions} from "common/hooks";
+import {FilterTasksButtons} from "features/TodolistsList/todolists/Todolist/FilterTasksButtons/FilterTasksButtons";
 
 type Props = {
   todolist: TodolistDomainType
@@ -20,7 +21,7 @@ export const Todolist: FC<Props> = memo(({demo = false, todolist, tasks}) => {
 
   const {fetchTasks, addTask} = useActions(tasksThunks)
   const {removeTodolist, changeTodolistTitle} = useActions(todolistsThunk)
-  const {changeTodolistFilter} = useActions(todolistsActions)
+
 
   useEffect(() => {
     if (demo) {
@@ -39,20 +40,6 @@ export const Todolist: FC<Props> = memo(({demo = false, todolist, tasks}) => {
   const changeTodolistTitleHandler = useCallback((title: string) => {
     changeTodolistTitle({id: todolist.id, title})
   }, [todolist.id, changeTodolistTitle])
-
-  const onAllClickHandler = useCallback(() => changeTodolistFilter({
-    filter: 'all',
-    id: todolist.id
-  }), [todolist.id, changeTodolistFilter])
-  const onActiveClickHandler = useCallback(() => changeTodolistFilter({
-    filter: 'active',
-    id: todolist.id
-  }), [todolist.id, changeTodolistFilter])
-  const onCompletedClickHandler = useCallback(() => changeTodolistFilter({
-    filter: 'completed',
-    id: todolist.id
-  }), [todolist.id, changeTodolistFilter])
-
 
   let tasksForTodolist = tasks
 
@@ -76,19 +63,7 @@ export const Todolist: FC<Props> = memo(({demo = false, todolist, tasks}) => {
       }
     </div>
     <div style={{paddingTop: '10px'}}>
-      <Button variant={todolist.filter === 'all' ? 'outlined' : 'text'}
-              onClick={onAllClickHandler}
-              color={'inherit'}
-      >All
-      </Button>
-      <Button variant={todolist.filter === 'active' ? 'outlined' : 'text'}
-              onClick={onActiveClickHandler}
-              color={'primary'}>Active
-      </Button>
-      <Button variant={todolist.filter === 'completed' ? 'outlined' : 'text'}
-              onClick={onCompletedClickHandler}
-              color={'secondary'}>Completed
-      </Button>
+      <FilterTasksButtons todolist={todolist}/>
     </div>
   </div>
 })
