@@ -22,7 +22,17 @@ const slice = createSlice({
     setAppInitialized: (state, action: PayloadAction<{ isInitialized: boolean }>) => {
       state.isInitialized = action.payload.isInitialized
     }
-
+  },
+  extraReducers: builder => {
+    builder.addMatcher(
+      (action) => {
+        console.log('add matcher action', action)
+        return action.type.endsWith('/pending')
+      },
+      (state, action) => {
+        console.log('add matcher reducer')
+        state.status = 'loading'
+      })
   }
 })
 
