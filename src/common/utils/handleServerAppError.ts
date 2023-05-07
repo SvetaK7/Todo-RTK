@@ -1,6 +1,6 @@
-import {Dispatch} from "redux";
-import {appActions} from "app/app-reducer";
-import {ResponseType} from "common/types/common-types";
+import { Dispatch } from "redux";
+import { appActions } from "app/app-reducer";
+import { ResponseType } from "common/types/common-types";
 
 /**
  * function that catch server error
@@ -10,7 +10,7 @@ import {ResponseType} from "common/types/common-types";
  */
 export const handleServerAppError = <D>(data: ResponseType<D>, dispatch: Dispatch, showError: boolean = true) => {
   if (showError) {
-    dispatch(appActions.setAppError({error: data.messages.length ? data.messages[0] : 'Some error occurred'}))
+    dispatch(appActions.setAppError({ error: data.messages.length ? data.messages[0] : "Some error occurred" }));
   }
-  dispatch(appActions.setAppStatus({status: 'failed'}))
-}
+  dispatch(appActions.setAppStatus({ status: "failed" }));
+};
